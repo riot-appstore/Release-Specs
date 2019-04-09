@@ -1,3 +1,4 @@
+from collections import namedtuple
 import argparse
 
 from testutils import Board
@@ -5,19 +6,20 @@ from mixins import GNRC, GNRC_UDP,PktBuf
 from time import sleep
 
 
+Result = namedtuple("Result", "packet_loss src_buf_empty dst_buf_empty")
+
 #Declare node
 class SixLoWPANNode(Board, GNRC, GNRC_UDP, PktBuf):
     pass
 
 
-def print_results(results):
-    packet_losses = [results[i][0] for i in range(len(results))]
-    print("Summary of {packet losses, source pktbuf sanity, dest pktbuf sanity}:")
-    for i in range(len(results)):
-        print("Run {}: {} {} {}".format(i+1, packet_losses[i], results[i][1], results[i][2]))
+def print_results(results_iter):
+    results = list(results_iter)
     print("")
-    print("Average packet losses: {}".format(sum(packet_losses)/len(packet_losses)))
-
+    print("Summary of {packet losses, source pktbuf sanity, dest pktbuf sanity}:")
+    for spec, r in results:
+        print("Run {}: {}".format(spec, r))
+    print("")
 
 def udp_send(source, dest, ip_dest, port, count, payload_size, delay):
     source.reboot()
@@ -28,7 +30,7 @@ def udp_send(source, dest, ip_dest, port, count, payload_size, delay):
     packet_loss = dest.udp_server_check_output(count, delay)
     dest.udp_server_stop()
 
-    return packet_loss, source.is_empty(), dest.is_empty()
+    return Result(packet_loss, source.is_empty(), dest.is_empty())
 
 
 argparser = argparse.ArgumentParser()

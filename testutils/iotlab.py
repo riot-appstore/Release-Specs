@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import subprocess
+import contextlib
 
 
 class IoTLABNode(object):
@@ -61,7 +62,7 @@ class IoTLABExperimentError(Exception):
     pass
 
 
-class IoTLABExperiment(object):
+class IoTLABExperiment(contextlib.AbstractContextManager):
     def __init__(self, name, nodes):
         self.nodes = nodes
         self.name = name
@@ -91,6 +92,9 @@ class IoTLABExperiment(object):
     def __repr__(self):
         return "IoTLABExperiment(name={}, exp_id={})".format(self.name,
                                                              self.exp_id)
+
+    def __exit__(self, *exc):
+        self.stop()
 
     def stop(self):
         if self.exp_id is not None:

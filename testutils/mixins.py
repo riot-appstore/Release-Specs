@@ -1,4 +1,5 @@
 import pexpect
+import tqdm
 
 
 class GNRC:
@@ -64,7 +65,7 @@ class GNRC_UDP:
 
     def udp_server_check_output(self, count, delay_ms):
         packets_lost = 0
-        for i in range(count):
+        for i in tqdm.trange(count, desc="Received", unit="packet"):
             exp = self.pexpect.expect([
                    r"Packets received: \d+",
                    r"PKTDUMP: data received:\n"
@@ -96,7 +97,7 @@ class GNRC_UDP:
             bytes = payload
         except ValueError:
             bytes = len(payload)
-        for i in range(count):
+        for i in tqdm.trange(count, desc="Sent", unit="packet"):
             exp = self.pexpect.expect([
                     "Success: sent {} byte\(s\) to \[{}\]:{}".format(
                         bytes, dest_addr, port),
